@@ -63,7 +63,7 @@ int my_dup(int src_fd, int dst_fd)
 {
     if (src_fd > 2 && dup2(src_fd, dst_fd) == -1)
     {
-printf("    fatal error in my_dup\n");
+// printf("    fatal error in my_dup\n");
         return -1;
     }
     return 0;
@@ -76,24 +76,24 @@ int exe_cmd_in_child(int ac, char **av, char **env, int prev_pipe_read, int curr
     pid_t child_pid = fork();
     if (child_pid == 0)//we are children
     {
-        printf("\n    GOING to execute \"");
-        for (int i = 0; i < ac; i++)
-            printf("%s ", av[i]);
-        printf("\"\n");
-        printf("    pipe_read = %d, pipe_write = %d\n", prev_pipe_read, current_pipe_write);
+        // printf("\n    GOING to execute \"");
+        // for (int i = 0; i < ac; i++)
+        //     printf("%s ", av[i]);
+        // printf("\"\n");
+        // printf("    pipe_read = %d, pipe_write = %d\n", prev_pipe_read, current_pipe_write);
         my_dup(prev_pipe_read, 0);
         my_dup(current_pipe_write, 1);
-        printf("    pipe write dup done\n");
+        // printf("    pipe write dup done\n");
         close_pipes(prev_pipe_read,  current_pipe_read, current_pipe_write);
         av[ac] = NULL;
         if (str_equal(*av, "cd"))
             exit(my_cd(ac, av));
         else 
         {
-            printf("    executing \"");
-            for (int i = 0; i < ac; i++)
-                printf("%s ", av[i]);
-            printf("\"\n\n");
+            // printf("    executing \"");
+            // for (int i = 0; i < ac; i++)
+            //     printf("%s ", av[i]);
+            // printf("\"\n\n");
 
             if (execve(*av, av, env) == -1)
             {
@@ -150,7 +150,7 @@ int parse_and_exe_end_of_pipeline(int exe_ac, char **av, char **env, int prev_pi
     int ret = -1;
     if (child_pid != -1)
     {
-        printf("waiting for LAST child = %d, av[0] = \"%s\"\n", child_pid, av[0]);
+        // printf("waiting for LAST child = %d, av[0] = \"%s\"\n", child_pid, av[0]);
         ret = wait_for_child(child_pid);
     }
     if ((prev_pipe_read_fd != -1 && close(prev_pipe_read_fd)))
