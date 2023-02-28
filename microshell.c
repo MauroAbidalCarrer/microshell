@@ -146,6 +146,12 @@ int parse_and_exe_end_of_pipeline(int exe_ac, char **av, char **env, int prev_pi
     //     printf("%s ", av[i]);
     // printf("\"\n");
 
+    //edge case for cd not being in a pipeline
+    if (str_equal(*av, "cd") && prev_pipe_read_fd == -1)
+    {
+        *last_exit_status_dst = my_cd(exe_ac, av);
+        return *last_exit_status_dst;
+    }
     int child_pid = exe_cmd_in_child(exe_ac, av, env, prev_pipe_read_fd, -1, -1);
     int ret = -1;
     if (child_pid != -1)
@@ -178,6 +184,7 @@ int parse_and_exe_pipeline(char **av, char **env, int prev_pipe_read_fd, int *la
     if (str_equal(av[exe_ac], "|"))
         return parse_and_exe_before_pipe(exe_ac, av, env, prev_pipe_read_fd, last_exit_status_dst);
     //If we are here, this means that we are at the end of the pipeline(because all of the previous if blocks would have returned).
+    //or that there was just a command and a ";", no pipeline
     return parse_and_exe_end_of_pipeline(exe_ac, av, env, prev_pipe_read_fd, last_exit_status_dst);
 }
 
