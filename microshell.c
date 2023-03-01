@@ -59,9 +59,7 @@ int exe_cmd_in_child(int ac, char **av, char **env, int prev_pipe_read, int curr
             (current_pipe_write != -1 && close(current_pipe_write)))
             ret = -1;
         av[ac] = NULL;
-        if (str_equal(*av, "cd"))
-            exit(my_cd(ac, av));
-        else if (execve(*av, av, env) == -1)
+        if (execve(*av, av, env) == -1)
             exit(write_two_err_msgs("error: cannot execute ", *av));
     }
     return child_pid;
