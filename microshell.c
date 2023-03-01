@@ -168,6 +168,8 @@ int parse_and_exe_end_of_pipeline(int exe_ac, char **av, char **env, int prev_pi
 //returns -1 if sys call failed to allow the previous iterations to close their pipe fds
 int parse_and_exe_pipeline(char **av, char **env, int prev_pipe_read_fd, int *last_exit_status_dst)
 {
+    // printf("parse_and_exe_pipeline called on \"%s\"\n", *av);
+
     //measure ac of the executable we are going to execute
     int exe_ac = 0;
     while (av[exe_ac] != NULL && !str_equal(av[exe_ac], "|") && !str_equal(av[exe_ac], ";"))
@@ -188,16 +190,50 @@ int parse_and_exe_pipeline(char **av, char **env, int prev_pipe_read_fd, int *la
     return parse_and_exe_end_of_pipeline(exe_ac, av, env, prev_pipe_read_fd, last_exit_status_dst);
 }
 
-
 int main(int ac, char **av, char **env)
 {
     (void)ac;
+    (void)av;
+    (void)env;
     int last_exit_status_dst;
-    if (parse_and_exe_pipeline(av + 1, env, -1, &last_exit_status_dst) == -1)
+    // int i = 0;
+    // do
+    // {
+    //     printf("parse_and_exe_pipeline on %s", *av);
+    //     // if (*av != NULL && parse_and_exe_pipeline(av, env, -1, &last_exit_status_dst) == -1)
+    //     //     exit_with_fatal_error();
+    //     while (!str_equal(*av, ";") && *av != NULL && ac > 0)
+    //     {
+    //         printf("passing` %s", *av);
+    //         av++;
+    //         ac--;
+    //     }
+    //     av++;
+    // }
+    // while (*av != NULL && i++ < 3);
+
+    ac--;
+    av++;
+    do
     {
-        // printf("parse_and_exe_pipeline returned with exit status -1\n");
-        exit_with_fatal_error();
-    }
+        // printf("parse_and_exe_pipeline on \"%s\"\n", *av);
+        if (*av != NULL && parse_and_exe_pipeline(av, env, -1, &last_exit_status_dst) == -1)
+            exit_with_fatal_error();
+
+        int exe_ac = 0;
+        while (av[exe_ac] != NULL && !str_equal(av[exe_ac], ";"))
+            exe_ac++;
+        exe_ac++;
+        // printf("exe_ac = %d, av[exe_ac] = \"%s\"\n", exe_ac, av[exe_ac]);
+        av += exe_ac;
+        ac -= exe_ac;
+    } while (ac >= 0);
+
+    // if (parse_and_exe_pipeline(av + 1, env, -1, &last_exit_status_dst) == -1)
+    // {
+    //     // printf("parse_and_exe_pipeline returned with exit status -1\n");
+    //     exit_with_fatal_error();
+    // }
     // printf("parse_and_exe_pipeline returned with exit status 0\n");
     return last_exit_status_dst;
 }
