@@ -5,6 +5,23 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+//test
+#include <limits.h>
+#include <fcntl.h>
+
+void print_nb_fds()
+{
+    int max_fd = getdtablesize();
+    int count = 0;
+    for (int fd = 0; fd < max_fd; fd++) {
+        if (fcntl(fd, F_GETFD) != -1) {
+            count++;
+        }
+    }
+    printf("Number of open file descriptors: %d\n", count);
+}
+
+
 // string manipulations
 int str_equal(char *str1, char *str2)
 {
@@ -60,7 +77,11 @@ int exe_cmd_in_child(int ac, char **av, char **env, int prev_pipe_read, int curr
             ret = -1;
         av[ac] = NULL;
         if (execve(*av, av, env) == -1)
+        {
+            // print_nb_fds();
+            printf("child exiting\n");
             exit(write_two_err_msgs("error: cannot execute ", *av));
+        }
     }
     return child_pid;
 }
@@ -85,6 +106,8 @@ int parse_and_exe_before_pipe(int exe_ac, char **av, char **env, int prev_pipe_r
         ret = parse_and_exe_pipeline(av + exe_ac + 1, env, *pipe_fds, last_exit_status_dst);
     if (child_pid != -1)
         ret = wait_for_child(child_pid);
+    if (child_pid == -1)
+        return -1;
     return ret;
 }
 int parse_and_exe_end_of_pipeline(int exe_ac, char **av, char **env, int prev_pipe_read_fd, int *last_exit_status_dst)
@@ -98,9 +121,11 @@ int parse_and_exe_end_of_pipeline(int exe_ac, char **av, char **env, int prev_pi
     int ret = -1;
     if (child_pid != -1)
         ret = wait_for_child(child_pid);
-    if ((prev_pipe_read_fd != -1 && close(prev_pipe_read_fd)))
+    if ((prev_pipe_read_fd != -1 && close(prev_pipe_read_fd))) 
         return -1;
     *last_exit_status_dst = ret;
+    if (child_pid == -1)
+        return -1;
     return ret;
 }
 int parse_and_exe_pipeline(char **av, char **env, int prev_pipe_read_fd, int *last_exit_status_dst)
@@ -130,5 +155,7 @@ int main(int ac, char **av, char **env)
         ac--;
         av++;
     } while (ac >= 0);
+    printf("parent exiting\n");
+    // print_nb_fds();
     return last_exit_status_dst;
 }
